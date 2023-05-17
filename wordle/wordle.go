@@ -1,35 +1,36 @@
 package wordle
 
 import (
-	words "clidle/words"
 	"errors"
+
+	words "github.com/bianxm/godle/words"
 )
 
 const (
-	maxGuesses = 6
-	wordSize   = 5
+	MaxGuesses = 6
+	WordSize   = 5
 )
 
-type letterStatus int
+type LetterStatus int
 
 const (
-	none letterStatus = iota
-	absent
-	present
-	correct
+	None LetterStatus = iota
+	Absent
+	Present
+	Correct
 )
 
 // word - to be guessed
 // guesses - array max length 6 of player guesses. made up of:
 // guess - string of 6 letters. each letter has state absent/ present/ correct
 
-type wordleState struct {
-	word      [wordSize]byte
-	guesses   [maxGuesses]guess
+type WordleState struct {
+	Word      [WordSize]byte
+	guesses   [MaxGuesses]guess
 	currGuess int
 }
 
-type guess [wordSize]letter
+type guess [WordSize]letter
 
 func (g guess) string() string {
 	// var w [wordSize]byte
@@ -46,27 +47,12 @@ func (g guess) string() string {
 
 type letter struct {
 	char   byte
-	status letterStatus
+	status LetterStatus
 }
 
-// func statusToString(ls letterStatus) string {
-// 	switch ls {
-// 	case none:
-// 		return "none"
-// 	case correct:
-// 		return "correct"
-// 	case present:
-// 		return "present"
-// 	case absent:
-// 		return "absent"
-// 	default:
-// 		return "unknown"
-// 	}
-// }
-
-func newWordleState(word string) wordleState {
-	w := wordleState{}
-	w.word = [wordSize]byte([]byte(word[:wordSize]))
+func NewWordleState(word string) WordleState {
+	w := WordleState{}
+	w.Word = [WordSize]byte([]byte(word[:WordSize]))
 	return w
 }
 
@@ -85,7 +71,7 @@ func newGuess(s string) guess {
 }
 
 // GAME LOGIC!
-func (g *guess) updateLettersWithWord(word [wordSize]byte) {
+func (g *guess) updateLettersWithWord(word [WordSize]byte) {
 	// updates status of the letters in the guess based on a word
 	// create a map letter to count
 	lc := make(map[byte]int)
@@ -99,32 +85,32 @@ func (g *guess) updateLettersWithWord(word [wordSize]byte) {
 	for i := range g {
 		l := &g[i]
 		if word[i] == l.char {
-			l.status = correct
+			l.status = Correct
 			lc[l.char] -= 1
 		}
 	}
 	// THEN do present/ absent
 	for i := range g {
 		l := &g[i]
-		if l.status != correct {
+		if l.status != Correct {
 			if lc[l.char] > 0 {
-				l.status = present
+				l.status = Present
 				lc[l.char] = lc[l.char] - 1
 			} else {
-				l.status = absent
+				l.status = Absent
 			}
 		}
 	}
 }
 
-func (ws *wordleState) appendGuess(g guess) error {
+func (ws *WordleState) appendGuess(g guess) error {
 	// return nil if added successfully
 	// error if: max guesses already reached, guess isn't long enough, guess isn't valid word
-	if ws.currGuess >= maxGuesses {
+	if ws.currGuess >= MaxGuesses {
 		return errors.New("Max guesses reached")
 	}
 
-	if len(g.string()) != wordSize {
+	if len(g.string()) != WordSize {
 		return errors.New("Invalid guess length")
 	}
 
@@ -137,23 +123,23 @@ func (ws *wordleState) appendGuess(g guess) error {
 	return nil
 }
 
-func (ws *wordleState) isWordGuessed() bool {
+func (ws *WordleState) isWordGuessed() bool {
 	// returns true if latest guess is the correct word
 	// check ws.guesses[currGuess-1].string() == ws.word
 	if ws.currGuess == 0 {
 		return false
 	}
-	if ws.guesses[ws.currGuess-1].string() == string(ws.word[:]) {
+	if ws.guesses[ws.currGuess-1].string() == string(ws.Word[:]) {
 		return true
 	}
 	return false
 }
 
-func (ws *wordleState) shouldEndGame() bool {
+func (ws *WordleState) shouldEndGame() bool {
 	// return true if latest guess is correct
 	// or no more guesses are allowed
 
-	if ws.isWordGuessed() || ws.currGuess >= maxGuesses {
+	if ws.isWordGuessed() || ws.currGuess >= MaxGuesses {
 		return true
 	}
 

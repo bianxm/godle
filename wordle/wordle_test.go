@@ -8,24 +8,24 @@ import (
 
 func TestNewWordleState(t *testing.T) {
 	word := "HELLOTHERE"
-	ws := newWordleState(word)
-	wordleAsString := string(ws.word[:])
+	ws := NewWordleState(word)
+	wordleAsString := string(ws.Word[:])
 
 	if wordleAsString != word[:5] {
 		t.Errorf("Expected word %s, but got %s", word, wordleAsString)
 	}
 }
 
-func statusToString(ls letterStatus) string {
+func statusToString(ls LetterStatus) string {
 	switch ls {
-	case none:
-		return "none"
-	case correct:
-		return "correct"
-	case present:
-		return "present"
-	case absent:
-		return "absent"
+	case None:
+		return "None"
+	case Correct:
+		return "Correct"
+	case Present:
+		return "Present"
+	case Absent:
+		return "Absent"
 	default:
 		return "unknown"
 	}
@@ -37,7 +37,7 @@ func TestNewLetter(t *testing.T) {
 	if l.char != letter {
 		t.Errorf("Expecting %v, got %v", letter, l.char)
 	}
-	if l.status != none {
+	if l.status != None {
 		t.Errorf("Expecting status none, got %s", statusToString(l.status))
 	}
 }
@@ -50,7 +50,7 @@ func TestNewGuess(t *testing.T) {
 
 	for i, l := range g {
 		t.Logf("Letter %d: %c, %s", i, l.char, statusToString(l.status))
-		if l.char != word[i] || l.status != none {
+		if l.char != word[i] || l.status != None {
 			t.Errorf(
 				"letter [%d] = %c, %s; want %c, none",
 				i,
@@ -64,14 +64,14 @@ func TestNewGuess(t *testing.T) {
 
 func TestUpdateLettersWithWord(t *testing.T) {
 	guessWord := "LELOL"
-	var word [wordSize]byte
+	var word [WordSize]byte
 	copy(word[:], "HELLO")
-	statuses := []letterStatus{
-		present,
-		correct,
-		correct,
-		present,
-		absent,
+	statuses := []LetterStatus{
+		Present,
+		Correct,
+		Correct,
+		Present,
+		Absent,
 	}
 
 	g := newGuess(guessWord)
@@ -98,8 +98,8 @@ func TestUpdateLettersWithWord(t *testing.T) {
 }
 
 func TestAppendGuessMaxGuesses(t *testing.T) {
-	ws := newWordleState("HELLO")
-	for i := 0; i < maxGuesses; i++ {
+	ws := NewWordleState("HELLO")
+	for i := 0; i < MaxGuesses; i++ {
 		word := words.GetWord()
 		// word := "LLLLL"
 		err := ws.appendGuess(newGuess(word))
@@ -135,7 +135,7 @@ func TestAppendGuessMaxGuesses(t *testing.T) {
 }
 
 func TestAppendGuessError(t *testing.T) {
-	ws := newWordleState("HELLO")
+	ws := NewWordleState("HELLO")
 
 	// invalid guess length
 	err1 := ws.appendGuess(newGuess("HI"))
@@ -154,9 +154,9 @@ func TestAppendGuessError(t *testing.T) {
 }
 
 func TestIsWordGuessed(t *testing.T) {
-	ws := newWordleState("HELLO")
+	ws := NewWordleState("HELLO")
 	g := newGuess("HELLO")
-	g.updateLettersWithWord(ws.word)
+	g.updateLettersWithWord(ws.Word)
 	if err := ws.appendGuess(g); err != nil {
 		t.Fatalf("Error: %s", err)
 	}
@@ -167,9 +167,9 @@ func TestIsWordGuessed(t *testing.T) {
 }
 
 func TestShouldEndGameCorrectGuess(t *testing.T) {
-	ws := newWordleState("HELLO")
+	ws := NewWordleState("HELLO")
 	g := newGuess("HELLO")
-	g.updateLettersWithWord(ws.word)
+	g.updateLettersWithWord(ws.Word)
 	ws.appendGuess(g)
 	if !ws.shouldEndGame() {
 		t.Errorf("Should be ending game because correctly guessed")
@@ -177,10 +177,10 @@ func TestShouldEndGameCorrectGuess(t *testing.T) {
 }
 
 func TestShouldEndGameNoMoreGuesses(t *testing.T) {
-	ws := newWordleState("HELLO")
-	for i := 0; i < maxGuesses; i++ {
+	ws := NewWordleState("HELLO")
+	for i := 0; i < MaxGuesses; i++ {
 		g := newGuess("YIELD")
-		g.updateLettersWithWord(ws.word)
+		g.updateLettersWithWord(ws.Word)
 		ws.appendGuess(g)
 	}
 	t.Logf(
