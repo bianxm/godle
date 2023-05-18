@@ -10,9 +10,15 @@ import (
 
 func (m model) View() string {
 	status := m.renderStatus()
+	grid := m.renderRows()
 	debug := m.renderDebug()
 
-	game := lipgloss.JoinVertical(lipgloss.Center, status, debug)
+	game := lipgloss.JoinVertical(
+		lipgloss.Center,
+		status,
+		grid,
+		debug,
+	)
 
 	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, game)
 }
@@ -63,4 +69,53 @@ func renderLetterBox(letter string, color lipgloss.TerminalColor) string {
 
 func renderRowOfBoxes(boxes []string) string {
 	return lipgloss.JoinHorizontal(lipgloss.Bottom, boxes[:]...)
+}
+
+func (m *model) renderRows() string {
+	var rows [wordle.MaxGuesses]string
+	ws := m.ws
+	for i, g := range ws.Guesses {
+		if i < ws.CurrGuess {
+			rows[i] = m.renderPastGuess(g)
+		} else if i == ws.CurrGuess {
+			rows[i] = m.renderActiveGuess()
+		} else {
+			rows[i] = m.renderFutureGuess()
+		}
+	}
+	return lipgloss.JoinVertical(lipgloss.Left, rows[:]...)
+}
+
+func (m *model) renderPastGuess(g wordle.Guess) string {
+	var letterBoxes [wordle.WordSize]string
+	for i, l := range g {
+		letterBoxes[i] = renderLetterBox(string(l.Char), statusToColor(l.Status))
+	}
+	return renderRowOfBoxes(letterBoxes[:])
+}
+
+func (m *model) renderFutureGuess() string {
+	var letterBoxes [wordle.WordSize]string
+	for i := 0; i < wordle.WordSize; i++ {
+		letterBoxes[i] = renderLetterBox(" ", colorPrimary)
+	}
+	return renderRowOfBoxes(letterBoxes[:])
+}
+
+func (m *model) renderActiveGuess() string {
+	var letterBoxes [wordle.WordSize]string
+	for i, char := range m.activeGuess {
+		var letter string
+		if i < m.cursor {
+			letter = string(char)
+		} else if i == m.cursor {
+			letter = "_"
+		} else {
+			letter = " "
+		}
+
+		letterBoxes[i] = renderLetterBox(letter, colorPrimary)
+	}
+
+	return renderRowOfBoxes(letterBoxes[:])
 }
