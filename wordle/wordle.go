@@ -29,6 +29,7 @@ type WordleState struct {
 	Word      [WordSize]byte
 	Guesses   [MaxGuesses]Guess
 	CurrGuess int
+	Alphabet  map[byte]LetterStatus
 }
 
 type Guess [WordSize]letter
@@ -51,9 +52,20 @@ type letter struct {
 	Status LetterStatus
 }
 
+// var Alphabet = make(map[byte]LetterStatus)
+
+// func InitAlphabet() {
+// 	for c := 'A'; c <= 'Z'; c++ {
+// 		Alphabet[byte(c)] = None
+// 	}
+// }
+
 func NewWordleState(word string) WordleState {
-	w := WordleState{}
+	w := WordleState{Alphabet: make(map[byte]LetterStatus)}
 	w.Word = [WordSize]byte([]byte(word[:WordSize]))
+	for c := 'A'; c <= 'Z'; c++ {
+		w.Alphabet[byte(c)] = None
+	}
 	return w
 }
 
@@ -117,6 +129,17 @@ func (ws *WordleState) AppendGuess(g Guess) error {
 
 	if !words.IsWord(g.string()) {
 		return errors.New("Invalid word")
+	}
+
+	// mutate Alphabet to reflect new letters guessed
+	// go through each letter in g
+	for i := range g {
+		// change Alphabet[letter].status to g.status
+		// UNLESS Alphabet[letter].status is correct
+		if ws.Alphabet[g[i].Char] != Correct {
+			ws.Alphabet[g[i].Char] = g[i].Status
+		}
+		// fmt.Printf("%c: %d %d\n", g[i].Char, ws.Alphabet[g[i].Char], g[i].Status)
 	}
 
 	ws.Guesses[ws.CurrGuess] = g

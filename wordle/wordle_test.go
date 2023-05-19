@@ -14,6 +14,7 @@ func TestNewWordleState(t *testing.T) {
 	if wordleAsString != word[:5] {
 		t.Errorf("Expected word %s, but got %s", word, wordleAsString)
 	}
+	t.Logf("%+v", ws.Alphabet)
 }
 
 func statusToString(ls LetterStatus) string {
@@ -134,6 +135,36 @@ func TestAppendGuessMaxGuesses(t *testing.T) {
 	}
 }
 
+func TestAppendGuessAlphabetUpdate(t *testing.T) {
+	var w [WordSize]byte
+	copy(w[:], "HELLO")
+	ws := NewWordleState("HELLO")
+	word := "HELPS"
+	g := NewGuess(word)
+	g.UpdateLettersWithWord(w)
+	ws.AppendGuess(g)
+	t.Logf("%+v", ws.Alphabet)
+	statuses := map[byte]LetterStatus{
+		'H': Correct,
+		'E': Correct,
+		'L': Correct,
+		'P': Absent,
+		'S': Absent,
+	}
+	for i := 'A'; i <= 'Z'; i++ {
+		j := byte(i)
+		if ws.Alphabet[j] != statuses[j] {
+			t.Errorf(
+				"Letter %c: expecting %s, got %s",
+				i,
+				statusToString(statuses[j]),
+				statusToString(ws.Alphabet[j]),
+			)
+		}
+	}
+	// check Alphabet
+}
+
 func TestAppendGuessError(t *testing.T) {
 	ws := NewWordleState("HELLO")
 
@@ -171,6 +202,7 @@ func TestShouldEndGameCorrectGuess(t *testing.T) {
 	g := NewGuess("HELLO")
 	g.UpdateLettersWithWord(ws.Word)
 	ws.AppendGuess(g)
+	t.Logf("%+v", ws.Alphabet)
 	if !ws.ShouldEndGame() {
 		t.Errorf("Should be ending game because correctly guessed")
 	}
@@ -192,3 +224,8 @@ func TestShouldEndGameNoMoreGuesses(t *testing.T) {
 		t.Error("Should end game should be true because no more guesses")
 	}
 }
+
+// func TestInitAlphabet(t *testing.T) {
+// 	InitAlphabet()
+// 	t.Logf("%+v", Alphabet)
+// }

@@ -12,12 +12,14 @@ func (m model) View() string {
 	status := m.renderStatus()
 	grid := m.renderRows()
 	debug := m.renderDebug()
+	ab := m.renderAlphabet()
 
 	game := lipgloss.JoinVertical(
 		lipgloss.Center,
 		status,
 		grid,
 		debug,
+		ab,
 	)
 
 	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, game)
@@ -65,6 +67,22 @@ func renderLetterBox(letter string, color lipgloss.TerminalColor) string {
 		BorderForeground(color).
 		Foreground(color).
 		Render(letter)
+}
+
+func (m *model) renderAlphabet() string {
+	rows := [3]string{"QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"}
+	var rr [3]string
+	var letterBoxes [3][10]string
+	fmt.Printf("%+v", m.ws.Alphabet[byte('H')])
+	for i, chars := range rows {
+		for j, c := range chars {
+			letterBoxes[i][j] = renderLetterBox(string(c), statusToColor(m.ws.Alphabet[byte(c)]))
+		}
+	}
+	for i := 0; i < 3; i++ {
+		rr[i] = renderRowOfBoxes(letterBoxes[i][:])
+	}
+	return lipgloss.JoinVertical(lipgloss.Center, rr[:]...)
 }
 
 func renderRowOfBoxes(boxes []string) string {

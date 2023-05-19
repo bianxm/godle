@@ -3,7 +3,6 @@ package main
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/bianxm/godle/wordle"
 	"github.com/bianxm/godle/words"
@@ -66,16 +65,14 @@ func (m *model) handleShouldEndGame() {
 	m.gameOver = ws.ShouldEndGame()
 	if m.gameOver {
 		m.cursor = -1
-		// check if the guess was correct
 		if ws.IsWordGuessed() {
-			// if yes, set status to yay! or something
-			m.handleSetStatus("Word guessed!\nPress ENTER to restart", 1*time.Second)
-			// TODO don't let them keep guessing... how?
+			// m.handleSetStatus("Word guessed!\nPress ENTER to restart", 1*time.Second)
+			m.handleSetStatus("Word guessed!\nPress ENTER to restart")
 		} else {
 			// means that there's no more guesses
-			m.handleSetStatus(fmt.Sprintf("No more guesses :( Word was %s\nPress ENTER to restart", string(ws.Word[:])), 1*time.Second)
+			// m.handleSetStatus(fmt.Sprintf("No more guesses :( Word was %s\nPress ENTER to restart", string(ws.Word[:])), 1*time.Second)
+			m.handleSetStatus(fmt.Sprintf("No more guesses :( Word was %s\nPress ENTER to restart", string(ws.Word[:])))
 		}
-		// TODO Enter to start a new game
 	}
 
 }
@@ -88,9 +85,11 @@ func (m *model) handleSubmitActiveGuess() {
 
 	err := ws.AppendGuess(g)
 	if err != nil {
-		m.handleSetStatus(err.Error(), 1*time.Second)
+		// m.handleSetStatus(err.Error(), 1*time.Second)
+		m.handleSetStatus(err.Error())
 		return
 	}
+	// fmt.Println(m.ws.Alphabet)
 	m.handleResetStatus()
 	// reset status to "Guess the word"
 	m.handleResetActiveGuess()
@@ -121,16 +120,17 @@ func (m *model) handleSubmitChar(r rune) {
 
 // handleSetStatus sets the status message, and returns a tea.Cmd that restores the
 // default status message after a delay.
-func (m *model) handleSetStatus(msg string, duration time.Duration) tea.Cmd {
+// func (m *model) handleSetStatus(msg string, duration time.Duration) tea.Cmd {
+func (m *model) handleSetStatus(msg string) {
 	m.status = msg
-	if duration > 0 {
-		m.statusPending++
-		// fmt.Println("hi")
-		return tea.Tick(duration, func(time.Time) tea.Msg {
-			return msgResetStatus{}
-		})
-	}
-	return nil
+	// if duration > 0 {
+	// 	m.statusPending++
+	// 	// fmt.Println("hi")
+	// 	return tea.Tick(duration, func(time.Time) tea.Msg {
+	// 		return msgResetStatus{}
+	// 	})
+	// }
+	// return nil
 }
 
 // handleResetStatus immediately resets the status message to its default value.
